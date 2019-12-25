@@ -30,7 +30,7 @@ total_dict = {
 # need to change
 data_dir = '/data/of/original_wanted_mapping_list'
 
-root_path = '/target/files/path'
+root_path = '/Users/yinbin.xu/Desktop/Codes/kyQA-Quard/src/tests'
 
 
 # get the target mapped file list
@@ -38,6 +38,8 @@ root_path = '/target/files/path'
 def get_files_list(file_path):
     for child in os.listdir(file_path):
         child_path = os.path.join(file_path, child)
+        if 'pycache' in child_path:
+            continue
         if os.path.isdir(child_path):
             get_files_list(child_path)
         else:
@@ -98,6 +100,36 @@ def anlysic_cases(cases):
     return temp_dict
 
 
+def full_case(cases):
+    num_list = []
+    full_case_name = []
+    for case in cases:
+        num_str = re.findall(r'\d+', case)
+        num_list.append(num_str)
+    all_case_num = case_full(num_list)
+    case_name = re.search(r'\D+', cases[0]).group()
+    for num in all_case_num:
+        full_case_name.append(f'{case_name}{num}')
+    return full_case_name
+
+
+def case_full(number):
+    total_list = []
+    for num in number:
+        if len(num) == 1:
+            total_list.append(num)
+            continue
+        num_lis = list(map(int, num))
+        temp_list = num_lis
+        for i in num_lis[1:]:
+            if i - num_lis[num_lis.index(i) - 1] > 1:
+                for j in range(num_lis[num_lis.index(i) - 1] + 1, i):
+                    temp_list.insert(num_lis.index(i), j)
+        total_list.append([str(i).zfill(len(num[0])) for i in temp_list])
+    total_list = sum(total_list, [])
+    return total_list
+
+
 # full the hole of case numbers, such as ['0010','0012','0008'] will extract to ['0010','0011','0008']
 def full_hole(number):
     for num in number:
@@ -140,16 +172,34 @@ def map_file_step(test_type, mapped_file, file_ls, mapped_type):
 def main():
     # step 1: get file and list
     get_files_list(root_path)
+    c = [
+        model_and_cube_list,
+        acl_list,
+        auto_model_list,
+        datasource_list,
+        diag_list,
+        query_list,
+        oam_list,
+    ]
+    d = ['model_and_cube', 'acl', 'auto_model', 'datasource', 'diag', 'query', 'oam']
+    num = 0
+    for b, e in zip(c, d):
+        a = full_case(b)
+        num += len(a)
+        with open(e, 'w') as f:
+            for aa in a:
+                f.write(aa + '\n')
+    print(num)
     # step 2: set dict
-    set_dict()
-    # step 3: write mapped relationship to files
-    map_file_step(test_type='system_operation', mapped_file='map_oam_34', file_ls='oam_34', mapped_type='oam')
-    map_file_step('model_and_cube', 'map_model_and_cube_34', 'model_and_cube_34', 'model_and_cube')
-    map_file_step(test_type='acl', mapped_file='map_acl_34', file_ls='acl_34', mapped_type='acl')
-    map_file_step(test_type='auto_model', mapped_file='map_auto_model_34', file_ls='auto_model_34', mapped_type='auto_model')
-    map_file_step(test_type='diag', mapped_file='map_diag_34', file_ls='diag_34', mapped_type='diag')
-    map_file_step(test_type='query', mapped_file='map_query_34', file_ls='query_34', mapped_type='query')
-    map_file_step(test_type='datasource', mapped_file='map_datasource_34', file_ls='datasource_34', mapped_type='data_source')
+    # set_dict()
+    # # step 3: write mapped relationship to files
+    # map_file_step(test_type='system_operation', mapped_file='map_oam_34', file_ls='oam_34', mapped_type='oam')
+    # map_file_step('model_and_cube', 'map_model_and_cube_34', 'model_and_cube_34', 'model_and_cube')
+    # map_file_step(test_type='acl', mapped_file='map_acl_34', file_ls='acl_34', mapped_type='acl')
+    # map_file_step(test_type='auto_model', mapped_file='map_auto_model_34', file_ls='auto_model_34', mapped_type='auto_model')
+    # map_file_step(test_type='diag', mapped_file='map_diag_34', file_ls='diag_34', mapped_type='diag')
+    # map_file_step(test_type='query', mapped_file='map_query_34', file_ls='query_34', mapped_type='query')
+    # map_file_step(test_type='datasource', mapped_file='map_datasource_34', file_ls='datasource_34', mapped_type='data_source')
 
 
 if __name__ == '__main__':
